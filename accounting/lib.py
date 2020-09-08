@@ -35,6 +35,43 @@ class TAccountEntry:
     def __str__(self):
         return "{0} {1} {2} {3} {4}".format(self.account, self.date, self.type, f"{self.amount:,d}", self.memo)
 
+    
+class TAccount:
+    def __init__(self, **kwargs):
+        self.account = kwargs["account"]
+        self.entries = kwargs["entries"]
+        self.credit = 0
+        self.debit = 0
+        
+        for entry in self.entries:
+            assert entry.account == self.account, f'account {entry.acount} != {account}'
+            if entry.type == "credit":
+                self.credit += entry.amount
+            elif entry.type == "debit":
+                self.debit += entry.amount
+            else:
+                raise Exception(f'invalid entry type {entry.type}')
+    
+    def __str__(self):
+        return "{0}\n{1}\n{2} {3}".format(
+            self.account, [str(e) for e in self.entries], f"{self.credit:,d}", f"{self.debit:,d}"
+        )
+
+class BalanceSheet:
+    def __init__(self, *kwargs):
+        self.assets = kwargs["assets"]
+        self.liabities = kwargs["liabilties"]
+        self.equities = kwargs["equities"]
+        
+    def __str__(self):
+        assets = 0
+        liabilities = 0
+        equities = 0
+        
+        return "assets: {0} | liabilities: {1} + equities: {2} = {3}".format(
+            f'{assets:,d}', f'{liabilities:,d}', f'{equities:,d}', f'{liabilities + equities:,d}'
+        )
+
 ### CSV
 CSV_HEADER = 1
 
@@ -165,3 +202,30 @@ def t_accounts_to_csv(t_accounts):
             writer.writerow(row)
         
         print("saved t-accounts.csv")
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
