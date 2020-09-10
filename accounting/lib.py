@@ -61,15 +61,30 @@ class BalanceSheet:
     def __init__(self, *kwargs):
         self.assets = kwargs["assets"]
         self.liabities = kwargs["liabilties"]
-        self.equities = kwargs["equities"]
+        self.incomes = kwargs["incomes"]
+        self.expenses = kwargs["expenses"]
         
     def __str__(self):
         assets = 0
         liabilities = 0
-        equities = 0
+        incomes = 0
+        expenses = 0
         
-        return "assets: {0} | liabilities: {1} + equities: {2} = {3}".format(
-            f'{assets:,d}', f'{liabilities:,d}', f'{equities:,d}', f'{liabilities + equities:,d}'
+        for t_account in self.asserts:
+            assets += t_account.debit - t_account.credit
+        for t_account in self.liabilities:
+            liabilities += t_account.debit - t_account.credit        
+        for t_account in self.incomes:
+            incomes += t_account.debit - t_account.credit
+        for t_account in self.expenses:
+            expenses += t_account.debit - t_account.credit
+        
+        return "assets {0} | liabilities {1} + (incomes {2} - expenses {3}): = {4}".format(
+            f'{assets:,d}',
+            f'{liabilities:,d}',
+            f'{incomes:,d}',
+            f'{expenses:,d}',
+            f'{liabilities + incomes - expenses:,d}'
         )
 
 ### CSV
