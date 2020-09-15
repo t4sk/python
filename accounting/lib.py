@@ -408,8 +408,24 @@ def print_balance_sheet(balance_sheet):
     print(f'収益 {revenues:,d}')
     print(f'費用 {expenses:,d}')
     print(f'負債 + 資本 + (収益 - 費用) {liabilities + equities + (revenues - expenses):,d}')
-    
-    
+
+
+def print_profit_loss(balance_sheet):
+    total_revenue = 0
+    for t_account in balance_sheet.revenues:
+        total_revenue += t_account.credit - t_account.debit
+        print(t_account.account, t_account.credit, t_account.debit)
+
+    print(f'=== 収益 {total_revenue:,d} ===')
+
+    total_expense = 0
+    for t_account in balance_sheet.expenses:
+        total_expense += t_account.debit - t_account.credit
+        print(t_account.account, t_account.credit, t_account.debit)
+
+    print(f'=== 費用 {total_expense:,d} ===')
+
+    print(f'=== 利益 {total_revenue - total_expense:,d} ===')
     
     
     
