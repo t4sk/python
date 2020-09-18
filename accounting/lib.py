@@ -1,7 +1,10 @@
 import csv
+from datetime import datetime
 
-def test_me():
-    print("test me")
+DATE_FORMAT = "%Y/%m/%d"
+
+def str_to_date(date_str):
+    return datetime.strptime(date_str, DATE_FORMAT)
 
 ### classes
 class Entry:
