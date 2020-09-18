@@ -13,21 +13,28 @@ def date_to_str(date):
 class Entry:
     def __init__(self, **kwargs):
         # credit | debit
-        self.type = kwargs["type"]
-        self.account = kwargs["account"]
-        self.amount = kwargs["amount"]
+        _type = kwargs["type"]
+        assert(_type is "credit" or _type is "debit")
+        
+        self.type = _type
+        self.account = kwargs["account"].strip()
+        self.amount = int(kwargs["amount"])
     
     def __str__(self):
         return "{0} {1} {2}".format(self.type, self.account, f"{self.amount:,d}")
 
 class JournalEntry:
     def __init__(self, **kwargs):
-        self.date = kwargs["date"]
+        self.date = str_to_date(kwargs["date"])
         self.entries = []
         self.memo = kwargs["memo"]
         
     def __str__(self):
-        return "{0}\n{1}\n{2}".format(self.date, [str(e) for e in self.entries], self.memo)
+        return "{0}\n{1}\n{2}".format(
+            date_to_str(self.date),
+            [str(e) for e in self.entries],
+            self.memo
+        )
 
 class TAccountEntry:
     def __init__(self, **kwargs):
@@ -109,16 +116,16 @@ def add_entries(journal_entry, row):
         journal_entry.entries.append(
             Entry(
                 type="debit",
-                account=debit[0].strip(),
-                amount=int(debit[2])
+                account=debit[0],
+                amount=debit[2]
             )
         )
     if credit[0] != "":
         journal_entry.entries.append(
             Entry(
                 type="credit",
-                account=credit[0].strip(),
-                amount=int(credit[2])
+                account=credit[0],
+                amount=credit[2]
             )
         )
 
