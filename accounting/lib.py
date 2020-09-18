@@ -6,6 +6,9 @@ DATE_FORMAT = "%Y/%m/%d"
 def str_to_date(date_str):
     return datetime.strptime(date_str, DATE_FORMAT)
 
+def date_to_str(date):
+    return date.strftime(DATE_FORMAT)
+
 ### classes
 class Entry:
     def __init__(self, **kwargs):
