@@ -1,13 +1,16 @@
 import csv
-from datetime import datetime
+import datetime
 
 DATE_FORMAT = "%Y/%m/%d"
 
 def str_to_date(date_str):
-    return datetime.strptime(date_str, DATE_FORMAT)
+    return datetime.datetime.strptime(date_str, DATE_FORMAT)
 
 def date_to_str(date):
     return date.strftime(DATE_FORMAT)
+
+def is_date(date):
+    return type(date) is datetime.datetime
 
 ### classes
 class Entry:
@@ -15,8 +18,8 @@ class Entry:
         # credit | debit
         _type = kwargs["type"]
         assert(_type is "credit" or _type is "debit")
-        
         self.type = _type
+        
         self.account = kwargs["account"].strip()
         self.amount = int(kwargs["amount"])
     
@@ -25,9 +28,13 @@ class Entry:
 
 class JournalEntry:
     def __init__(self, **kwargs):
-        self.date = str_to_date(kwargs["date"])
+        _date = kwargs["date"]
+        if not is_date(_date):
+            _date = str_to_date(_date)
+        self.date = _date
+        
         self.entries = []
-        self.memo = kwargs["memo"]
+        self.memo = kwargs["memo"].strip()
         
     def __str__(self):
         return "{0}\n{1}\n{2}".format(
@@ -38,21 +45,35 @@ class JournalEntry:
 
 class TAccountEntry:
     def __init__(self, **kwargs):
-        self.account = kwargs["account"]
-        self.date = kwargs["date"]
+        self.account = kwargs["account"].strip()
+        
+        _date = kwargs["date"]
+        if not is_date(_date):
+            _date = str_to_date(_date)
+        self.date = _date
+        
         # credit | debit
-        self.type = kwargs["type"]
-        self.amount = kwargs["amount"]
-        self.memo = kwargs["memo"]
+        _type = kwargs["type"]
+        assert(_type is "credit" or _type is "debit")
+        self.type = _type
+        
+        self.amount = int(kwargs["amount"])
+        self.memo = kwargs["memo"].strip()
     
     def __str__(self):
-        return "{0} {1} {2} {3} {4}".format(self.account, self.date, self.type, f"{self.amount:,d}", self.memo)
+        return "{0} {1} {2} {3} {4}".format(
+            self.account,
+            self.date, # date_to_str(self.date),
+            self.type,
+            f"{self.amount:,d}",
+            self.memo
+        )
 
-    
 class TAccount:
     def __init__(self, **kwargs):
-        self.account = kwargs["account"]
+        self.account = kwargs["account"].strip()
         self.entries = kwargs["entries"]
+        # TODO remove and create function
         self.credit = 0
         self.debit = 0
         
@@ -67,7 +88,10 @@ class TAccount:
     
     def __str__(self):
         return "{0}\n{1}\n{2} {3}".format(
-            self.account, [str(e) for e in self.entries], f"{self.credit:,d}", f"{self.debit:,d}"
+            self.account,
+            [str(e) for e in self.entries],
+            f"{self.credit:,d}",
+            f"{self.debit:,d}"
         )
 
 class BalanceSheet:
@@ -171,7 +195,7 @@ def check_balance(journal_entries):
     print(f'credit {credit:,d} debit {debit:,d}')
 
 def group_by_account(journal_entries):
-    # account => entry[]
+    # account => t_acount_entry[]
     grouped = {}
     
     for journal_entry in journal_entries:
@@ -209,7 +233,7 @@ def t_accounts_to_csv(t_accounts):
         for entry in entries:
             # date, debit, credit, memo
             row = [
-                entry.date,
+                date_to_str(entry.date),
                 entry.amount if entry.type == "debit" else "",
                 entry.amount if entry.type == "credit" else "",
                 entry.memo
