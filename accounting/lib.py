@@ -73,7 +73,6 @@ class TAccount:
     def __init__(self, **kwargs):
         self.account = kwargs["account"].strip()
         self.entries = kwargs["entries"]
-        # TODO remove and create function
         self.credit = 0
         self.debit = 0
         
