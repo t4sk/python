@@ -177,6 +177,17 @@ def csv_to_journal_entries(file_path):
     
     return journal_entries
 
+
+def filter_journal_entries_by_date_range(journal_entries, start_at, end_at):
+    filtered = []
+    
+    for journal_entry in journal_entries:
+        if start_at <= journal_entry.date <= end_at:
+            filtered.append(journal_entry)
+    
+    return filtered
+
+
 def check_balance(journal_entries):
     credit = 0
     debit = 0
@@ -193,7 +204,7 @@ def check_balance(journal_entries):
     assert credit == debit, f'credit != debit, credit = {credit:,d}, debit = {debit:,d}'
     print(f'credit {credit:,d} debit {debit:,d}')
 
-def group_by_account(journal_entries):
+def t_account_entries_by_account(journal_entries):
     # account => t_acount_entry[]
     grouped = {}
     
@@ -218,7 +229,20 @@ def group_by_account(journal_entries):
             )
 
     return grouped
+
+
+def journal_entries_to_t_accounts(journal_entries):
+    t_accounts = []
+    accounts = t_account_entries_by_account(journal_entries)
     
+    for account, entries in accounts.items():
+        t_accounts.append(TAccount(
+            account=account,
+            entries=entries
+        ))
+    
+    return t_accounts
+
 def t_accounts_to_csv(t_accounts):
     rows = []
     
@@ -462,7 +486,8 @@ def print_profit_loss(balance_sheet):
     print(f'=== 費用 {total_expense:,d} ===')
 
     print(f'=== 利益 {total_revenue - total_expense:,d} ===')
-    
+
+
     
     
     
