@@ -101,31 +101,31 @@ class BalanceSheet:
         self.revenues = kwargs["revenues"]
         self.expenses = kwargs["expenses"]
         
-    def __str__(self):
-        assets = 0
-        liabilities = 0
-        equities = 0
-        revenues = 0
-        expenses = 0
+        self._assets = 0
+        self._liabilities = 0
+        self._equities = 0
+        self._revenues = 0
+        self._expenses = 0
         
         for t_account in self.assets:
-            assets += t_account.debit - t_account.credit
+            self._assets += t_account.debit - t_account.credit
         for t_account in self.liabilities:
-            liabilities += t_account.credit - t_account.debit
+            self._liabilities += t_account.credit - t_account.debit
         for t_account in self.equities:
-            equities += t_account.credit - t_account.debit      
+            self._equities += t_account.credit - t_account.debit      
         for t_account in self.revenues:
-            revenues += t_account.credit - t_account.debit
+            self._revenues += t_account.credit - t_account.debit
         for t_account in self.expenses:
-            expenses += t_account.debit - t_account.credit
+            self._expenses += t_account.debit - t_account.credit
         
+    def __str__(self):
         return "assets {0} | liabilities {1} + equities {2} + (revenues {3} - expenses {4}) = {5}".format(
-            f'{assets:,d}',
-            f'{liabilities:,d}',
-            f'{equities:,d}',
-            f'{revenues:,d}',
-            f'{expenses:,d}',
-            f'{liabilities + equities + revenues - expenses:,d}'
+            f'{self._assets:,d}',
+            f'{self._liabilities:,d}',
+            f'{self._equities:,d}',
+            f'{self._revenues:,d}',
+            f'{self._expenses:,d}',
+            f'{self._liabilities + self._equities + self._revenues - self._expenses:,d}'
         )
 
 ### CSV
@@ -484,7 +484,6 @@ def print_profit_loss(balance_sheet):
         print(t_account.account, t_account.credit, t_account.debit)
 
     print(f'=== 費用 {total_expense:,d} ===')
-
     print(f'=== 利益 {total_revenue - total_expense:,d} ===')
 
 
