@@ -1,6 +1,6 @@
 import csv
 from datetime import datetime, timedelta
-
+from account_types import ASSET_TYPES, LIABILITY_TYPES, EQUITY_TYPES, REVENUE_TYPES, EXPENSE_TYPES
 
 DATE_FORMAT = "%Y/%m/%d"
 
@@ -75,7 +75,7 @@ class TAccountEntry:
     def __str__(self):
         return "{0} {1} {2} {3} {4}".format(
             self.account,
-            self.date, # date_to_str(self.date),
+            date_to_str(self.date),
             self.type,
             f"{self.amount:,d}",
             self.memo
@@ -216,7 +216,7 @@ def check_balance(journal_entries):
     assert credit == debit, f'credit != debit, credit = {credit:,d}, debit = {debit:,d}'
     print(f'credit {credit:,d} debit {debit:,d}')
 
-def t_account_entries_by_account(journal_entries):
+def group_journal_entries_by_account(journal_entries):
     # account => t_acount_entry[]
     grouped = {}
     
@@ -367,14 +367,7 @@ def get_accounts(t_accounts):
     
     return accounts
 
-def create_balance_sheet(
-    t_accounts,
-    asset_types,
-    liability_types,
-    equities_types,
-    revenues_types,
-    expense_types
-):
+def create_balance_sheet(t_accounts):
     assets = []
     liabilities = []
     equities = []
@@ -383,15 +376,15 @@ def create_balance_sheet(
 
     # csv_to_t_accounts
     for t_account in t_accounts:
-        if t_account.account in asset_types:
+        if t_account.account in ASSET_TYPES:
             assets.append(t_account)
-        elif t_account.account in liability_types:
+        elif t_account.account in LIABILITY_TYPES:
             liabilities.append(t_account)
-        elif t_account.account in equities_types:
+        elif t_account.account in EQUITY_TYPES:
             equities.append(t_account)
-        elif t_account.account in revenues_types:
+        elif t_account.account in REVENUE_TYPES:
             revenues.append(t_account)
-        elif t_account.account in expense_types:
+        elif t_account.account in EXPENSE_TYPES:
             expenses.append(t_account)
         else:
             raise Exception(f'{t_account.account} is not in asset, liability, equity, revenue or expense')
@@ -486,14 +479,14 @@ def print_profit_loss(balance_sheet):
     total_revenue = 0
     for t_account in balance_sheet.revenues:
         total_revenue += t_account.credit - t_account.debit
-        print(t_account.account, t_account.credit, t_account.debit)
+        print(t_account.account, f'{t_account.credit:,d}', f'{t_account.debit:,d}')
 
     print(f'=== 収益 {total_revenue:,d} ===')
 
     total_expense = 0
     for t_account in balance_sheet.expenses:
         total_expense += t_account.debit - t_account.credit
-        print(t_account.account, t_account.credit, t_account.debit)
+        print(t_account.account, f'{t_account.credit:,d}', f'{t_account.debit:,d}')
 
     print(f'=== 費用 {total_expense:,d} ===')
     print(f'=== 利益 {total_revenue - total_expense:,d} ===')
