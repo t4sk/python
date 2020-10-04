@@ -1,16 +1,28 @@
 import csv
-import datetime
+from datetime import datetime, timedelta
+
 
 DATE_FORMAT = "%Y/%m/%d"
 
 def str_to_date(date_str):
-    return datetime.datetime.strptime(date_str, DATE_FORMAT)
+    return datetime.strptime(date_str, DATE_FORMAT)
 
 def date_to_str(date):
     return date.strftime(DATE_FORMAT)
 
 def is_date(date):
-    return type(date) is datetime.datetime
+    return type(date) is datetime
+
+def get_months(year):
+    months = []
+
+    for i in range(1, 13):    
+        start = datetime(year, i, 1)
+        end = datetime(year + (i // 12), (i % 12) + 1, 1) - timedelta(days=1)
+
+        months.append((start, end))
+        
+    return months
 
 ### classes
 class Entry:
