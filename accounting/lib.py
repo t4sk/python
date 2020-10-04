@@ -245,7 +245,7 @@ def group_journal_entries_by_account(journal_entries):
 
 def journal_entries_to_t_accounts(journal_entries):
     t_accounts = []
-    accounts = t_account_entries_by_account(journal_entries)
+    accounts = group_journal_entries_by_account(journal_entries)
     
     for account, entries in accounts.items():
         t_accounts.append(TAccount(
