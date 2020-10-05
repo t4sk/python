@@ -4,39 +4,45 @@ from account_types import ASSET_TYPES, LIABILITY_TYPES, EQUITY_TYPES, REVENUE_TY
 
 DATE_FORMAT = "%Y/%m/%d"
 
+
 def str_to_date(date_str):
     return datetime.strptime(date_str, DATE_FORMAT)
+
 
 def date_to_str(date):
     return date.strftime(DATE_FORMAT)
 
+
 def is_date(date):
     return type(date) is datetime
+
 
 def get_months(year):
     months = []
 
-    for i in range(1, 13):    
+    for i in range(1, 13):
         start = datetime(year, i, 1)
         end = datetime(year + (i // 12), (i % 12) + 1, 1) - timedelta(days=1)
-
         months.append((start, end))
-        
+
     return months
 
-### classes
+# classes
+
+
 class Entry:
     def __init__(self, **kwargs):
         # credit | debit
         _type = kwargs["type"]
         assert(_type is "credit" or _type is "debit")
         self.type = _type
-        
+
         self.account = kwargs["account"].strip()
         self.amount = int(kwargs["amount"])
-    
+
     def __str__(self):
         return "{0} {1} {2}".format(self.type, self.account, f"{self.amount:,d}")
+
 
 class JournalEntry:
     def __init__(self, **kwargs):
@@ -44,10 +50,10 @@ class JournalEntry:
         if not is_date(_date):
             _date = str_to_date(_date)
         self.date = _date
-        
+
         self.entries = []
         self.memo = kwargs["memo"].strip()
-        
+
     def __str__(self):
         return "{0}\n{1}\n{2}".format(
             date_to_str(self.date),
@@ -55,23 +61,24 @@ class JournalEntry:
             self.memo
         )
 
+
 class TAccountEntry:
     def __init__(self, **kwargs):
         self.account = kwargs["account"].strip()
-        
+
         _date = kwargs["date"]
         if not is_date(_date):
             _date = str_to_date(_date)
         self.date = _date
-        
+
         # credit | debit
         _type = kwargs["type"]
         assert(_type is "credit" or _type is "debit")
         self.type = _type
-        
+
         self.amount = int(kwargs["amount"])
         self.memo = kwargs["memo"].strip()
-    
+
     def __str__(self):
         return "{0} {1} {2} {3} {4}".format(
             self.account,
@@ -81,22 +88,23 @@ class TAccountEntry:
             self.memo
         )
 
+
 class TAccount:
     def __init__(self, **kwargs):
         self.account = kwargs["account"].strip()
         self.entries = kwargs["entries"]
         self.credit = 0
         self.debit = 0
-        
+
         for entry in self.entries:
-            assert entry.account == self.account, f'account {entry.acount} != {account}'
+            assert entry.account == self.account, f'account {entry.acount} != {self.account}'
             if entry.type == "credit":
                 self.credit += entry.amount
             elif entry.type == "debit":
                 self.debit += entry.amount
             else:
                 raise Exception(f'invalid entry type {entry.type}')
-    
+
     def __str__(self):
         return "{0}\n{1}\n{2} {3}".format(
             self.account,
@@ -105,6 +113,7 @@ class TAccount:
             f"{self.debit:,d}"
         )
 
+
 class BalanceSheet:
     def __init__(self, **kwargs):
         self.assets = kwargs["assets"]
@@ -112,24 +121,24 @@ class BalanceSheet:
         self.equities = kwargs["equities"]
         self.revenues = kwargs["revenues"]
         self.expenses = kwargs["expenses"]
-        
+
         self._assets = 0
         self._liabilities = 0
         self._equities = 0
         self._revenues = 0
         self._expenses = 0
-        
+
         for t_account in self.assets:
             self._assets += t_account.debit - t_account.credit
         for t_account in self.liabilities:
             self._liabilities += t_account.credit - t_account.debit
         for t_account in self.equities:
-            self._equities += t_account.credit - t_account.debit      
+            self._equities += t_account.credit - t_account.debit
         for t_account in self.revenues:
             self._revenues += t_account.credit - t_account.debit
         for t_account in self.expenses:
             self._expenses += t_account.debit - t_account.credit
-        
+
     def __str__(self):
         return "assets {0} | liabilities {1} + equities {2} + (revenues {3} - expenses {4}) = {5}".format(
             f'{self._assets:,d}',
@@ -140,8 +149,10 @@ class BalanceSheet:
             f'{self._liabilities + self._equities + self._revenues - self._expenses:,d}'
         )
 
-### CSV
+
+# CSV
 CSV_HEADER = 1
+
 
 def add_entries(journal_entry, row):
     debit = row[1:4]
@@ -164,6 +175,7 @@ def add_entries(journal_entry, row):
             )
         )
 
+
 def csv_to_journal_entries(file_path):
     journal_entries = []
 
@@ -173,37 +185,37 @@ def csv_to_journal_entries(file_path):
         for i, row in enumerate(reader):
             if i <= CSV_HEADER:
                 continue
-                
+
             date = row[0].strip()
-            
+
             # new journal entry
             if date != "":
                 memo = (row[7] + ' ' + row[8]).strip()
-                
-                journal_entry = JournalEntry(date=date, memo=memo)  
+
+                journal_entry = JournalEntry(date=date, memo=memo)
                 add_entries(journal_entry, row)
                 journal_entries.append(journal_entry)
             else:
                 journal_entry = journal_entries[-1]
                 add_entries(journal_entry, row)
-    
+
     return journal_entries
 
 
 def filter_journal_entries_by_date_range(journal_entries, start_at, end_at):
     filtered = []
-    
+
     for journal_entry in journal_entries:
         if start_at <= journal_entry.date <= end_at:
             filtered.append(journal_entry)
-    
+
     return filtered
 
 
 def check_balance(journal_entries):
     credit = 0
     debit = 0
-    
+
     for journal_entry in journal_entries:
         for entry in journal_entry.entries:
             if entry.type == "credit":
@@ -212,24 +224,25 @@ def check_balance(journal_entries):
                 debit += entry.amount
             else:
                 raise Exception(f'invalid entry type {entry.type}')
-    
+
     assert credit == debit, f'credit != debit, credit = {credit:,d}, debit = {debit:,d}'
     print(f'credit {credit:,d} debit {debit:,d}')
+
 
 def group_journal_entries_by_account(journal_entries):
     # account => t_acount_entry[]
     grouped = {}
-    
+
     for journal_entry in journal_entries:
         date = journal_entry.date
         memo = journal_entry.memo
-        
+
         for entry in journal_entry.entries:
             account = entry.account
-            
+
             if not account in grouped:
                 grouped[account] = []
-                
+
             grouped[account].append(
                 TAccountEntry(
                     account=account,
@@ -246,25 +259,26 @@ def group_journal_entries_by_account(journal_entries):
 def journal_entries_to_t_accounts(journal_entries):
     t_accounts = []
     accounts = group_journal_entries_by_account(journal_entries)
-    
+
     for account, entries in accounts.items():
         t_accounts.append(TAccount(
             account=account,
             entries=entries
         ))
-    
+
     return t_accounts
+
 
 def t_accounts_to_csv(t_accounts):
     rows = []
-    
+
     for account, entries in t_accounts.items():
         # title
         rows.append([account])
-        
+
         debit = 0
         credit = 0
-        
+
         for entry in entries:
             # date, debit, credit, memo
             row = [
@@ -273,7 +287,7 @@ def t_accounts_to_csv(t_accounts):
                 entry.amount if entry.type == "credit" else "",
                 entry.memo
             ]
-            
+
             if entry.type == "debit":
                 debit += entry.amount
             elif entry.type == "credit":
@@ -282,45 +296,49 @@ def t_accounts_to_csv(t_accounts):
                 raise Exception(f'invalid entry type {entry.type}')
 
             rows.append(row)
-        
+
         # append debit, credit total
         # skip, debit total, credit total
         rows.append(["", debit, credit])
-    
+
     with open('t-accounts.csv', 'w', newline='\n') as file:
-        writer= csv.writer(file, delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        
+        writer = csv.writer(file, delimiter=',',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+
         for row in rows:
             writer.writerow(row)
-        
+
         print("saved t-accounts.csv")
+
 
 def csv_to_t_accounts(file_path):
     t_accounts = []
 
     with open(file_path, newline='\n') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='|')
-        
+
         account = ""
         entries = []
-        
+
         for row in reader:
             # row is account header
-            if len(row) == 1:                    
+            if len(row) == 1:
                 account = row[0]
             # row is credit, debit total for account
             elif len(row) == 3:
                 (_, debit, crebit) = row
-                
+
                 t_account = TAccount(
                     account=account,
                     entries=entries
                 )
-                
+
                 # check debit, credit
-                assert t_account.debit == int(debit), f'debit {t_account.debit} != {debit}'
-                assert t_account.debit == int(debit), f'crebit {t_account.crebit} != {crebit}'
-                
+                assert t_account.debit == int(
+                    debit), f'debit {t_account.debit} != {debit}'
+                assert t_account.debit == int(
+                    debit), f'crebit {t_account.credit} != {crebit}'
+
                 t_accounts.append(t_account)
                 # reset entries
                 entries = []
@@ -335,7 +353,7 @@ def csv_to_t_accounts(file_path):
                     raise Exception(
                         'expected either debit or crebit to be not empty'
                     )
-                
+
                 amount = 0
                 if _type == "debit":
                     amount = int(debit)
@@ -345,7 +363,7 @@ def csv_to_t_accounts(file_path):
                     raise Exception(
                         f'invalid type {_type}. expected debit or crebit'
                     )
-                
+
                 entries.append(TAccountEntry(
                     account=account,
                     date=date,
@@ -356,16 +374,18 @@ def csv_to_t_accounts(file_path):
 
     return t_accounts
 
+
 def get_accounts(t_accounts):
     accounts = set()
-    
+
     for t_account in t_accounts:
         account = t_account.account
-        
+
         if account not in accounts:
             accounts.add(account)
-    
+
     return accounts
+
 
 def create_balance_sheet(t_accounts):
     assets = []
@@ -387,8 +407,9 @@ def create_balance_sheet(t_accounts):
         elif t_account.account in EXPENSE_TYPES:
             expenses.append(t_account)
         else:
-            raise Exception(f'{t_account.account} is not in asset, liability, equity, revenue or expense')
-    
+            raise Exception(
+                f'{t_account.account} is not in asset, liability, equity, revenue or expense')
+
     balance_sheet = BalanceSheet(
         assets=assets,
         liabilities=liabilities,
@@ -396,9 +417,10 @@ def create_balance_sheet(t_accounts):
         revenues=revenues,
         expenses=expenses
     )
-    
+
     return balance_sheet
-    
+
+
 def check_balance_sheet(balance_sheet):
     assets = 0
     liabilities = 0
@@ -411,15 +433,15 @@ def check_balance_sheet(balance_sheet):
     for t_account in balance_sheet.liabilities:
         liabilities += t_account.credit - t_account.debit
     for t_account in balance_sheet.equities:
-        equities += t_account.credit - t_account.debit      
+        equities += t_account.credit - t_account.debit
     for t_account in balance_sheet.revenues:
         revenues += t_account.credit - t_account.debit
     for t_account in balance_sheet.expenses:
         expenses += t_account.debit - t_account.credit
-    
+
     left = assets
     right = liabilities + equities + revenues - expenses
-    
+
     assert left == right, "assets {0} | liabilities {1} + equities {2} + (revenues {3} - expenses {4}) = {5}".format(
         f'{assets:,d}',
         f'{liabilities:,d}',
@@ -428,83 +450,70 @@ def check_balance_sheet(balance_sheet):
         f'{expenses:,d}',
         f'{right:,d}'
     )
-    
+
+
 def print_balance_sheet(balance_sheet):
     assets = 0
     liabilities = 0
     equities = 0
     revenues = 0
     expenses = 0
-    
+
     print("=== 資産 ===")
     for t_account in balance_sheet.assets:
         diff = t_account.debit - t_account.credit
         assets += diff
         print(f'{t_account.account} {diff:,d}')
-    
+
     print("=== 負債 ===")
     for t_account in balance_sheet.liabilities:
         diff = t_account.credit - t_account.debit
         liabilities += diff
         print(f'{t_account.account} {diff:,d}')
-    
+
     print("=== 資本 ===")
     for t_account in balance_sheet.equities:
         diff = t_account.credit - t_account.debit
         equities += diff
         print(f'{t_account.account} {diff:,d}')
-    
+
     print("=== 収益 ===")
     for t_account in balance_sheet.revenues:
         diff = t_account.credit - t_account.debit
         revenues += diff
         print(f'{t_account.account} {diff:,d}')
-    
+
     print("=== 費用 ===")
     for t_account in balance_sheet.expenses:
         diff = t_account.debit - t_account.credit
         expenses += diff
         print(f'{t_account.account} {diff:,d}')
-    
+
     print("============")
     print(f'資産 {assets:,d}')
     print(f'負債 {liabilities:,d}')
     print(f'資本 {equities:,d}')
     print(f'収益 {revenues:,d}')
     print(f'費用 {expenses:,d}')
-    print(f'負債 + 資本 + (収益 - 費用) {liabilities + equities + (revenues - expenses):,d}')
+    print(
+        f'負債 + 資本 + (収益 - 費用) {liabilities + equities + (revenues - expenses):,d}')
 
 
 def print_profit_loss(balance_sheet):
     total_revenue = 0
     for t_account in balance_sheet.revenues:
         total_revenue += t_account.credit - t_account.debit
-        print(t_account.account, f'{t_account.credit:,d}', f'{t_account.debit:,d}')
+        print(t_account.account,
+              f'{t_account.credit:,d}', f'{t_account.debit:,d}')
 
     print(f'=== 収益 {total_revenue:,d} ===')
 
     total_expense = 0
     for t_account in balance_sheet.expenses:
         total_expense += t_account.debit - t_account.credit
-        print(t_account.account, f'{t_account.credit:,d}', f'{t_account.debit:,d}')
+        print(t_account.account,
+              f'{t_account.credit:,d}', f'{t_account.debit:,d}'
+              )
 
     print(f'=== 費用 {total_expense:,d} ===')
     print(f'=== 利益 {total_revenue - total_expense:,d} ===')
-
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
