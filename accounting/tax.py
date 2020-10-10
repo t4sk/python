@@ -182,3 +182,87 @@ def get_resident_tax(
 
     return taxable_income * RESIDENT_TAX_RATE + RESIDENT_TAX_PER_PERSON_FEE
 
+### main ###
+def main(**kwargs):
+    pre_tax_income = kwargs["income"]
+    ### 国民年金 ###
+    pension_fee = 16540 * 12
+
+    ### 国民健康保険 ###
+    age = kwargs["age"]
+
+    # 医療
+    medical = HealthInsuranceTax(
+        rate=0.0714,
+        per_person_fee=39900,
+        flat_fee=0
+    )
+    # 後期高齢者支援分
+    elderly_aid = HealthInsuranceTax(
+        rate=0.0229,
+        per_person_fee=12900,
+        flat_fee=0
+    )
+    # 介護分
+    nursing_care = HealthInsuranceTax(
+        rate=0.0205,
+        per_person_fee=15600,
+        flat_fee=0,
+    )
+
+    # 国民健康保険の加入者
+    subscribers = [age]
+
+    national_health_insurance_fee = get_national_health_insurance_fee(
+        pre_tax_income,
+        age,
+        medical,
+        elderly_aid,
+        nursing_care,
+        subscribers
+    )
+
+    ### 所得税 ###
+    # 配偶者控除
+    spouse_deduction = 0
+    # 扶養控除
+    dependents_deduction = 0
+    # 生命保険料控除
+    life_insurance_deduction = 0
+
+    # NOTE should pass previous year's expenses
+    income_tax = get_income_tax(
+        pre_tax_income,
+        spouse_deduction,
+        dependents_deduction,
+        life_insurance_deduction,
+        pension_fee,
+        national_health_insurance_fee,
+    )
+
+    ### 住民税 ###
+    # NOTE should pass previous year's expenses
+    resident_tax = get_resident_tax(
+        pre_tax_income,
+        spouse_deduction,
+        dependents_deduction,
+        life_insurance_deduction,
+        pension_fee,
+        national_health_insurance_fee,
+    )
+
+    after_tax_income = (
+        pre_tax_income
+        - resident_tax
+        - national_health_insurance_fee
+        - pension_fee
+        - income_tax
+    )
+
+    print(f'収入: {pre_tax_income:,d}')
+    print(f'国民健康保険: {national_health_insurance_fee:,.0f}')
+    print(f'国民年金: {pension_fee:,d}')
+    print(f'住民税: {resident_tax:,.0f}')
+    print(f'所得税: {income_tax:,.0f}')
+    print(f'手取り収入: {after_tax_income:,.0f}')
+
