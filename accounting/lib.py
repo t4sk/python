@@ -122,31 +122,37 @@ class BalanceSheet:
         self.revenues = kwargs["revenues"]
         self.expenses = kwargs["expenses"]
 
-        self._assets = 0
-        self._liabilities = 0
-        self._equities = 0
-        self._revenues = 0
-        self._expenses = 0
+        assets = 0
+        liabilities = 0
+        equities = 0
+        revenues = 0
+        expenses = 0
 
         for t_account in self.assets:
-            self._assets += t_account.debit - t_account.credit
+            assets += t_account.debit - t_account.credit
         for t_account in self.liabilities:
-            self._liabilities += t_account.credit - t_account.debit
+            liabilities += t_account.credit - t_account.debit
         for t_account in self.equities:
-            self._equities += t_account.credit - t_account.debit
+            equities += t_account.credit - t_account.debit
         for t_account in self.revenues:
-            self._revenues += t_account.credit - t_account.debit
+            revenues += t_account.credit - t_account.debit
         for t_account in self.expenses:
-            self._expenses += t_account.debit - t_account.credit
+            expenses += t_account.debit - t_account.credit
+        
+        self.total_assets = assets
+        self.total_liabilities = liabilities
+        self.total_equities = equities
+        self.total_revenues = revenues
+        self.total_expenses = expenses
 
     def __str__(self):
         return "assets {0} | liabilities {1} + equities {2} + (revenues {3} - expenses {4}) = {5}".format(
-            f'{self._assets:,d}',
-            f'{self._liabilities:,d}',
-            f'{self._equities:,d}',
-            f'{self._revenues:,d}',
-            f'{self._expenses:,d}',
-            f'{self._liabilities + self._equities + self._revenues - self._expenses:,d}'
+            f'{self.total_assets:,d}',
+            f'{self.total_liabilities:,d}',
+            f'{self.total_equities:,d}',
+            f'{self.total_revenues:,d}',
+            f'{self.total_expenses:,d}',
+            f'{self.total_liabilities + self.total_equities + self.total_revenues - self.total_expenses:,d}'
         )
 
 
@@ -438,6 +444,12 @@ def check_balance_sheet(balance_sheet):
         revenues += t_account.credit - t_account.debit
     for t_account in balance_sheet.expenses:
         expenses += t_account.debit - t_account.credit
+    
+    assert assets == balance_sheet.total_assets, "assets"
+    assert liabilities == balance_sheet.total_liabilities, "liabilities"
+    assert equities == balance_sheet.total_equities, "equities"
+    assert revenues == balance_sheet.total_revenues, "revenues"
+    assert expenses == balance_sheet.total_expenses, "expenses"
 
     left = assets
     right = liabilities + equities + revenues - expenses
@@ -453,42 +465,37 @@ def check_balance_sheet(balance_sheet):
 
 
 def print_balance_sheet(balance_sheet):
-    assets = 0
-    liabilities = 0
-    equities = 0
-    revenues = 0
-    expenses = 0
-
     print("=== 資産 ===")
     for t_account in balance_sheet.assets:
         diff = t_account.debit - t_account.credit
-        assets += diff
         print(f'{t_account.account} {diff:,d}')
 
     print("=== 負債 ===")
     for t_account in balance_sheet.liabilities:
         diff = t_account.credit - t_account.debit
-        liabilities += diff
         print(f'{t_account.account} {diff:,d}')
 
     print("=== 資本 ===")
     for t_account in balance_sheet.equities:
         diff = t_account.credit - t_account.debit
-        equities += diff
         print(f'{t_account.account} {diff:,d}')
 
     print("=== 収益 ===")
     for t_account in balance_sheet.revenues:
         diff = t_account.credit - t_account.debit
-        revenues += diff
         print(f'{t_account.account} {diff:,d}')
 
     print("=== 費用 ===")
     for t_account in balance_sheet.expenses:
         diff = t_account.debit - t_account.credit
-        expenses += diff
         print(f'{t_account.account} {diff:,d}')
 
+    assets = balance_sheet.total_assets
+    liabilities = balance_sheet.total_liabilities
+    equities = balance_sheet.total_equities
+    revenues = balance_sheet.total_revenues
+    expenses = balance_sheet.total_expenses
+    
     print("============")
     print(f'資産 {assets:,d}')
     print(f'負債 {liabilities:,d}')
