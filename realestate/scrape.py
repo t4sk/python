@@ -11,16 +11,16 @@ Agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHT
 
 H = {'User-Agent': Agent, 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3'}
 
-green = '\x1b[32;21m'
-purple = '\x1b[32;35m'
-reset = '\x1b[0m'
+GREEN = '\x1b[32;21m'
+PURPLE = '\x1b[32;35m'
+RESET = '\x1b[0m'
 
 
 def debug(*msg):
-    print(purple, *msg, reset)
+    print(PURPLE, *msg, RESET)
 
 
-def getpage(url):
+def get_page(url):
     try:
         req = request.Request(url, headers=H)
         f = request.urlopen(req, timeout=60)
@@ -36,26 +36,31 @@ def getpage(url):
 
 
 parts = urllib.parse.urlparse(url)
-baseurl = "{}://{}{}".format(parts.scheme, parts.netloc, parts.path)
+base_url = "{}://{}{}".format(parts.scheme, parts.netloc, parts.path)
 
 # main/1st page
-raw = getpage(url)
+raw = get_page(url)
 houses = html.fromstring(raw)
 
 # get node with house info
-inforule = '//div[@class="propertyBlock__contentRight"]'
+info_rule = '//div[@class="propertyBlock__contentRight"]'
 # easier to just get 'rendered text' with .text_content() then use regex
 # partial implementation
-dataRx = {"price": r"(?<=価格).+\s([\d\w]+万)(?:\s+)?(?=円)", "gross": r"(?<=利回り).+\s([\d\.%]+)(?=\s)", "address": r"(?<=所在地)(.*)(?=沿線交通)", "floor_area": r"(?<=建物面積)[\s]+([\d\.]+)(?=㎡)", "land_area": r"(?<=土地面積)[\s]+([\d\.]+)(?=㎡)"
-          }
+regex_map = {
+    "price": r"(?<=価格).+\s([\d\w]+万)(?:\s+)?(?=円)",
+    "gross": r"(?<=利回り).+\s([\d\.%]+)(?=\s)",
+    "address": r"(?<=所在地)(.*)(?=沿線交通)",
+    "floor_area": r"(?<=建物面積)[\s]+([\d\.]+)(?=㎡)",
+    "land_area": r"(?<=土地面積)[\s]+([\d\.]+)(?=㎡)"
+}
 
 
-def getdata(houses):
+def get_data(houses):
     results = []
-    for info in houses.xpath(inforule):
+    for info in houses.xpath(info_rule):
         txt = info.text_content().replace("\n", "")
         data = {}
-        for k, v in dataRx.items():
+        for k, v in regex_map.items():
             m = re.search(v, txt, flags=re.MULTILINE)
             if m:
                 data[k] = m.group(1).strip()
@@ -64,22 +69,20 @@ def getdata(houses):
 
 
 # first page results 20
-results = getdata(houses)
-len(results)
-results
+results = get_data(houses)
+print(len(results))
 
 # this should really be parallelized into different processes
-linksToMorePages = '//div[@class="header_pager_navigation"]//li[contains(@id, "pagination_page_")]/a/@href'
+links_to_more_pages = '//div[@class="header_pager_navigation"]//li[contains(@id, "pagination_page_")]/a/@href'
 # go to other pages(links) found in 1st page
-for u in houses.xpath(linksToMorePages):
-    u = baseurl + u
-    raw = getpage(u)
+for u in houses.xpath(links_to_more_pages):
+    u = base_url + u
+    raw = get_page(u)
     houses = html.fromstring(raw)
-    results.extend(getdata(houses))
+    results.extend(get_data(houses))
 
-
-len(results)
+print(len(results))
 
 
 units = pd.DataFrame(results)
-units.to_csv("results.csv", index=False)
+units.to_csv("rakumachi.csv", index=False)
