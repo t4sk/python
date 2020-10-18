@@ -264,5 +264,6 @@ def main(**kwargs):
     print(f'国民年金: {pension_fee:,d}')
     print(f'住民税: {resident_tax:,.0f}')
     print(f'所得税: {income_tax:,.0f}')
+    print(f'税: {pre_tax_income - after_tax_income:,.0f}')
     print(f'手取り収入: {after_tax_income:,.0f}')
 
