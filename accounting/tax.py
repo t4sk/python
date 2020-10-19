@@ -230,7 +230,7 @@ def main(**kwargs):
     # 生命保険料控除
     life_insurance_deduction = 0
 
-    # NOTE should pass previous year's expenses
+    # NOTE should pass previous year's expenses (pension, national health)
     income_tax = get_income_tax(
         pre_tax_income,
         spouse_deduction,
@@ -241,7 +241,7 @@ def main(**kwargs):
     )
 
     ### 住民税 ###
-    # NOTE should pass previous year's expenses
+    # NOTE should pass previous year's expenses (pension, national health)
     resident_tax = get_resident_tax(
         pre_tax_income,
         spouse_deduction,
@@ -250,6 +250,9 @@ def main(**kwargs):
         pension_fee,
         national_health_insurance_fee,
     )
+    
+    ### 個人事業税 ###
+    business_tax = income_tax * 0.05
 
     after_tax_income = (
         pre_tax_income
@@ -257,13 +260,17 @@ def main(**kwargs):
         - national_health_insurance_fee
         - pension_fee
         - income_tax
+        - business_tax
     )
+    total_tax = pre_tax_income - after_tax_income
 
     print(f'収入: {pre_tax_income:,d}')
     print(f'国民健康保険: {national_health_insurance_fee:,.0f}')
     print(f'国民年金: {pension_fee:,d}')
     print(f'住民税: {resident_tax:,.0f}')
     print(f'所得税: {income_tax:,.0f}')
-    print(f'税: {pre_tax_income - after_tax_income:,.0f}')
+    print(f'個人事業税: {business_tax:,.0f}')
+    print(f'税: {total_tax:,.0f}')
     print(f'手取り収入: {after_tax_income:,.0f}')
+    print(f'税 / 収入: {(total_tax / pre_tax_income) * 100:,.3f} %')
 
