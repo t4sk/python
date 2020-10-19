@@ -185,29 +185,32 @@ def get_resident_tax(
 ### main ###
 def main(**kwargs):
     pre_tax_income = kwargs["income"]
+    age = kwargs["age"]
+    medical = kwargs["medical"]
+    elderly_aid = kwargs["elderly_aid"]
+    nursing_care = kwargs["nursing_care"]
+    
     ### 国民年金 ###
     pension_fee = 16540 * 12
 
     ### 国民健康保険 ###
-    age = kwargs["age"]
-
     # 医療
-    medical = HealthInsuranceTax(
-        rate=0.0714,
-        per_person_fee=39900,
-        flat_fee=0
+    _medical = HealthInsuranceTax(
+        rate = medical["rate"],
+        per_person_fee = medical["per_person_fee"],
+        flat_fee = medical["flat_fee"]
     )
     # 後期高齢者支援分
-    elderly_aid = HealthInsuranceTax(
-        rate=0.0229,
-        per_person_fee=12900,
-        flat_fee=0
+    _elderly_aid = HealthInsuranceTax(
+        rate = elderly_aid["rate"],
+        per_person_fee = elderly_aid["per_person_fee"],
+        flat_fee = elderly_aid["flat_fee"]
     )
     # 介護分
-    nursing_care = HealthInsuranceTax(
-        rate=0.0205,
-        per_person_fee=15600,
-        flat_fee=0,
+    _nursing_care = HealthInsuranceTax(
+        rate = nursing_care["rate"],
+        per_person_fee = nursing_care["per_person_fee"],
+        flat_fee = nursing_care["flat_fee"]
     )
 
     # 国民健康保険の加入者
@@ -216,9 +219,9 @@ def main(**kwargs):
     national_health_insurance_fee = get_national_health_insurance_fee(
         pre_tax_income,
         age,
-        medical,
-        elderly_aid,
-        nursing_care,
+        _medical,
+        _elderly_aid,
+        _nursing_care,
         subscribers
     )
 
@@ -250,7 +253,7 @@ def main(**kwargs):
         pension_fee,
         national_health_insurance_fee,
     )
-    
+
     ### 個人事業税 ###
     business_tax = income_tax * 0.05
 
