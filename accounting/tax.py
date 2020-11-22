@@ -15,10 +15,10 @@ NURSING_CARE_FEE_MIN_AGE = 40
 INCOME_TAX_BASE_DEDUCTION = 480000
 
 # 住民税
-RESIDENT_TAX_BASE_DEDUCTION = 430000;
-RESIDENT_TAX_RATE = 0.1;
+RESIDENT_TAX_BASE_DEDUCTION = 430000
+RESIDENT_TAX_RATE = 0.1
 # 均等割額
-RESIDENT_TAX_PER_PERSON_FEE = 5000;
+RESIDENT_TAX_PER_PERSON_FEE = 5000
 
 class HealthInsuranceTax:
     def __init__(self, **kwargs):
@@ -37,7 +37,7 @@ class IncomeBracket:
         self.max = kwargs["max"]
         self.rate = kwargs["rate"]
         self.deduction = kwargs["deduction"]
-        
+
     def __str__(self):
         return f'max {self.max:,f} rate {self.rate:,f} deduction {self.deduction:,f}'
 
@@ -77,9 +77,9 @@ INCOME_BRACKETS = [
         rate=0.45,
         deduction=4796000,
     ),
-]   
-    
-# 国民健康保険    
+]
+
+# 国民健康保険
 def get_national_health_insurance_fee(
     pre_tax_income, age, medical, elderly_aid, nursing_care, subscribers
 ):
@@ -91,7 +91,7 @@ def get_national_health_insurance_fee(
 
     num_subscribers = len(subscribers)
     num_nursing_care_subcribers = 0
-        
+
     for age in subscribers:
         if age >= NURSING_CARE_FEE_MIN_AGE:
             num_nursing_care_subcribers += 1
@@ -149,8 +149,8 @@ def get_income_tax(
 
     # floor 1000
     taxable_income = floor(pre_tax_income - BLUE_FORM_DEDUCTION - deductions, 3)
-    
-    income_bracket = get_income_bracket(taxable_income);
+
+    income_bracket = get_income_bracket(taxable_income)
     # floor 100
     return floor(
         taxable_income * income_bracket.rate - income_bracket.deduction,
@@ -189,7 +189,7 @@ def main(**kwargs):
     medical = kwargs["medical"]
     elderly_aid = kwargs["elderly_aid"]
     nursing_care = kwargs["nursing_care"]
-    
+
     ### 国民年金 ###
     pension_fee = 16540 * 12
 
