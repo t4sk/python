@@ -39,9 +39,10 @@ class Entry:
 
         self.account = kwargs["account"].strip()
         self.amount = int(kwargs["amount"])
+        self.year = int(kwargs["year"])
 
     def __str__(self):
-        return "{0} {1} {2}".format(self.type, self.account, f"{self.amount:,d}")
+        return f'{self.type} {self.account} {self.amount:,d} {self.year}'
 
 
 class JournalEntry:
@@ -138,7 +139,7 @@ class BalanceSheet:
             revenues += t_account.credit - t_account.debit
         for t_account in self.expenses:
             expenses += t_account.debit - t_account.credit
-
+        
         self.total_assets = assets
         self.total_liabilities = liabilities
         self.total_equities = equities
@@ -163,13 +164,15 @@ CSV_HEADER = 1
 def add_entries(journal_entry, row):
     debit = row[1:4]
     credit = row[4:7]
+    year = row[9]
 
     if debit[0] != "":
         journal_entry.entries.append(
             Entry(
                 type="debit",
                 account=debit[0],
-                amount=debit[2]
+                amount=debit[2],
+                year=year
             )
         )
     if credit[0] != "":
@@ -177,7 +180,8 @@ def add_entries(journal_entry, row):
             Entry(
                 type="credit",
                 account=credit[0],
-                amount=credit[2]
+                amount=credit[2],
+                year=year
             )
         )
 
@@ -204,7 +208,7 @@ def csv_to_journal_entries(file_path):
                 if prev_date:
                     assert prev_date <= entry_date, f'entry dates not asc {prev_date} > {entry_date}'
                 prev_date = entry_date
-
+                
                 memo = (row[7] + ' ' + row[8]).strip()
 
                 journal_entry = JournalEntry(date=date, memo=memo)
@@ -453,7 +457,7 @@ def check_balance_sheet(balance_sheet):
         revenues += t_account.credit - t_account.debit
     for t_account in balance_sheet.expenses:
         expenses += t_account.debit - t_account.credit
-
+    
     assert assets == balance_sheet.total_assets, "assets"
     assert liabilities == balance_sheet.total_liabilities, "liabilities"
     assert equities == balance_sheet.total_equities, "equities"
@@ -504,7 +508,7 @@ def print_balance_sheet(balance_sheet):
     equities = balance_sheet.total_equities
     revenues = balance_sheet.total_revenues
     expenses = balance_sheet.total_expenses
-
+    
     print("============")
     print(f'資産 {assets:,d}')
     print(f'負債 {liabilities:,d}')
