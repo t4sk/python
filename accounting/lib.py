@@ -138,7 +138,7 @@ class BalanceSheet:
             revenues += t_account.credit - t_account.debit
         for t_account in self.expenses:
             expenses += t_account.debit - t_account.credit
-        
+
         self.total_assets = assets
         self.total_liabilities = liabilities
         self.total_equities = equities
@@ -187,6 +187,9 @@ def csv_to_journal_entries(file_path):
 
     with open(file_path, newline='\n') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        # check date is asc
+        prev_date = None
+
         # skip first line
         for i, row in enumerate(reader):
             if i <= CSV_HEADER:
@@ -196,6 +199,12 @@ def csv_to_journal_entries(file_path):
 
             # new journal entry
             if date != "":
+                # check dates asc
+                entry_date = str_to_date(date)
+                if prev_date:
+                    assert prev_date <= entry_date, f'entry dates not asc {prev_date} > {entry_date}'
+                prev_date = entry_date
+
                 memo = (row[7] + ' ' + row[8]).strip()
 
                 journal_entry = JournalEntry(date=date, memo=memo)
@@ -444,7 +453,7 @@ def check_balance_sheet(balance_sheet):
         revenues += t_account.credit - t_account.debit
     for t_account in balance_sheet.expenses:
         expenses += t_account.debit - t_account.credit
-    
+
     assert assets == balance_sheet.total_assets, "assets"
     assert liabilities == balance_sheet.total_liabilities, "liabilities"
     assert equities == balance_sheet.total_equities, "equities"
@@ -495,7 +504,7 @@ def print_balance_sheet(balance_sheet):
     equities = balance_sheet.total_equities
     revenues = balance_sheet.total_revenues
     expenses = balance_sheet.total_expenses
-    
+
     print("============")
     print(f'資産 {assets:,d}')
     print(f'負債 {liabilities:,d}')
