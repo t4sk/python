@@ -79,14 +79,16 @@ class TAccountEntry:
 
         self.amount = int(kwargs["amount"])
         self.memo = kwargs["memo"].strip()
+        self.year = int(kwargs["year"])
 
     def __str__(self):
-        return "{0} {1} {2} {3} {4}".format(
+        return "{0} {1} {2} {3} {4} {5}".format(
             self.account,
             date_to_str(self.date),
             self.type,
             f"{self.amount:,d}",
-            self.memo
+            self.memo,
+            self.year
         )
 
 
@@ -268,7 +270,8 @@ def group_journal_entries_by_account(journal_entries):
                     date=date,
                     type=entry.type,
                     amount=entry.amount,
-                    memo=memo
+                    memo=memo,
+                    year=entry.year
                 )
             )
 
@@ -290,6 +293,9 @@ def journal_entries_to_t_accounts(journal_entries):
 
 def t_accounts_to_csv(t_accounts):
     rows = []
+    
+    # header
+    rows.append(["", "借方", "貸方", "摘要", "年度"])
 
     for account, entries in t_accounts.items():
         # title
@@ -304,7 +310,8 @@ def t_accounts_to_csv(t_accounts):
                 date_to_str(entry.date),
                 entry.amount if entry.type == "debit" else "",
                 entry.amount if entry.type == "credit" else "",
-                entry.memo
+                entry.memo,
+                entry.year
             ]
 
             if entry.type == "debit":
@@ -316,8 +323,7 @@ def t_accounts_to_csv(t_accounts):
 
             rows.append(row)
 
-        # append debit, credit total
-        # skip, debit total, credit total
+        # append debit and credit total
         rows.append(["", debit, credit])
 
     with open('t-accounts.csv', 'w', newline='\n') as file:
