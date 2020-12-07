@@ -291,20 +291,25 @@ def journal_entries_to_t_accounts(journal_entries):
     return t_accounts
 
 
-def t_accounts_to_csv(t_accounts):
+def t_accounts_to_csv(t_accounts, **kwargs):
+    year = kwargs.get("year", None)
     rows = []
     
     # header
     rows.append(["", "借方", "貸方", "摘要", "年度"])
 
     for account, entries in t_accounts.items():
+        _rows = []
         # title
-        rows.append([account])
+        _rows.append([account])
 
         debit = 0
         credit = 0
 
         for entry in entries:
+            if year != None and year != entry.year:
+                continue
+                
             # date, debit, credit, memo
             row = [
                 date_to_str(entry.date),
@@ -321,19 +326,29 @@ def t_accounts_to_csv(t_accounts):
             else:
                 raise Exception(f'invalid entry type {entry.type}')
 
-            rows.append(row)
+            _rows.append(row)
 
+        # skip if no entry
+        if len(_rows) <= 1:
+            continue
+
+        for row in _rows:
+            rows.append(row)
         # append debit and credit total
         rows.append(["", debit, credit])
-
-    with open('t-accounts.csv', 'w', newline='\n') as file:
+    
+    file_name = "t-accounts.csv"
+    if year:
+        file_name = f't-accounts-{year}.csv'
+        
+    with open(file_name, 'w', newline='\n') as file:
         writer = csv.writer(file, delimiter=',',
                             quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
         for row in rows:
             writer.writerow(row)
 
-        print("saved t-accounts.csv")
+        print(f'saved {file_name}')
 
 
 def csv_to_t_accounts(file_path):
