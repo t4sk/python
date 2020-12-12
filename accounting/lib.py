@@ -291,6 +291,22 @@ def journal_entries_to_t_accounts(journal_entries):
     return t_accounts
 
 
+def filter_t_accounts_by_year(t_accounts, **kwargs):
+    year = kwargs["year"]
+    filtered = []
+    
+    for t_account in t_accounts:
+        entries = list(filter(lambda e: e.year == year, t_account.entries))
+        if len(entries) > 0:
+            filtered.append(
+                TAccount(
+                    account=t_account.account,
+                    entries=entries
+                )
+            )
+    
+    return filtered
+
 def t_accounts_to_csv(t_accounts, **kwargs):
     year = kwargs.get("year", None)
     rows = []
@@ -298,15 +314,14 @@ def t_accounts_to_csv(t_accounts, **kwargs):
     # header
     rows.append(["", "借方", "貸方", "摘要", "年度"])
 
-    for account, entries in t_accounts.items():
-        _rows = []
+    for t_account in t_accounts:
         # title
-        _rows.append([account])
+        rows.append([t_account.account])
 
         debit = 0
         credit = 0
 
-        for entry in entries:
+        for entry in t_account.entries:
             if year != None and year != entry.year:
                 continue
                 
@@ -326,24 +341,17 @@ def t_accounts_to_csv(t_accounts, **kwargs):
             else:
                 raise Exception(f'invalid entry type {entry.type}')
 
-            _rows.append(row)
-
-        # skip if no entry
-        if len(_rows) <= 1:
-            continue
-
-        for row in _rows:
             rows.append(row)
+
         # append debit and credit total
-        rows.append(["", debit, credit])
+        rows.append(["", debit, credit, debit - credit])
     
     file_name = "t-accounts.csv"
     if year:
         file_name = f't-accounts-{year}.csv'
         
     with open(file_name, 'w', newline='\n') as file:
-        writer = csv.writer(file, delimiter=',',
-                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        writer = csv.writer(file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
         for row in rows:
             writer.writerow(row)
