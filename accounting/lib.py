@@ -368,13 +368,16 @@ def csv_to_t_accounts(file_path):
         account = ""
         entries = []
 
-        for row in reader:
+        for i, row in enumerate(reader):
+            # skip header
+            if i == 0:
+                continue
             # row is account header
             if len(row) == 1:
                 account = row[0]
-            # row is credit, debit total for account
-            elif len(row) == 3:
-                (_, debit, crebit) = row
+            # row is "", debit,credit, diff for account
+            elif len(row) == 4:
+                (_, debit, crebit, _diff) = row
 
                 t_account = TAccount(
                     account=account,
@@ -391,7 +394,7 @@ def csv_to_t_accounts(file_path):
                 # reset entries
                 entries = []
             else:
-                (date, debit, credit, memo) = row
+                (date, debit, credit, memo, year) = row
                 _type = ""
                 if debit != "":
                     _type = "debit"
@@ -417,7 +420,8 @@ def csv_to_t_accounts(file_path):
                     date=date,
                     type=_type,
                     amount=amount,
-                    memo=memo
+                    memo=memo,
+                    year=year
                 ))
 
     return t_accounts
