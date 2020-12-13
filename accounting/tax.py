@@ -255,7 +255,7 @@ def main(**kwargs):
     )
 
     ### 個人事業税 ###
-    business_tax = income_tax * 0.05
+    business_tax = (pre_tax_income - 2900000) * 0.05
 
     after_tax_income = (
         pre_tax_income
