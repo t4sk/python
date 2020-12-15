@@ -4,6 +4,7 @@ from lib import (
     csv_to_journal_entries, create_balance_sheet, print_balance_sheet,
     filter_journal_entries_by_date_range,
     journal_entries_to_t_accounts,
+    filter_t_accounts_by_year,
     date_to_str,
     get_months
 )
@@ -34,9 +35,10 @@ def print_header():
     equity = padd_left("equitity", 15, " ")
     revenue = padd_left("revenue", 15, " ")
     expense = padd_left("expense", 15, " ")
+    profit = padd_left("profit", 15, " ")
     
-    print(date, asset, liability, equity, revenue, expense)
-    print(repeat("-", 7 + 75 + 5)) 
+    print(date, asset, liability, equity, revenue, expense, profit)
+    print(repeat("-", 7 + 15 * 6 + 7)) 
 
 
 
@@ -51,6 +53,7 @@ def main(**kwargs):
         filtered = filter_journal_entries_by_date_range(
             journal_entries, start, end)
         t_accounts = journal_entries_to_t_accounts(filtered)
+        t_accounts = filter_t_accounts_by_year(t_accounts, year=year)
         balance_sheets.append(create_balance_sheet(t_accounts))
      
     # print summary
@@ -65,7 +68,8 @@ def main(**kwargs):
             print_num(bs.total_liabilities),
             print_num(bs.total_equities),
             print_num(bs.total_revenues),
-            print_num(bs.total_expenses)
+            print_num(bs.total_expenses),
+            print_num(bs.total_revenues - bs.total_expenses)
         )
      
     # print detail
