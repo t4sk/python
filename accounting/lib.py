@@ -34,7 +34,7 @@ class Entry:
     def __init__(self, **kwargs):
         # credit | debit
         _type = kwargs["type"]
-        assert(_type is "credit" or _type is "debit")
+        assert(_type == "credit" or _type == "debit")
         self.type = _type
 
         self.account = kwargs["account"].strip()
@@ -74,7 +74,7 @@ class TAccountEntry:
 
         # credit | debit
         _type = kwargs["type"]
-        assert(_type is "credit" or _type is "debit")
+        assert(_type == "credit" or _type == "debit")
         self.type = _type
 
         self.amount = int(kwargs["amount"])
