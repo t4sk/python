@@ -3,4 +3,5 @@ __pycache__
 *.ipynb
 *.csv
 *.ipynb
+!real-estate/price-and-yield.ipynb
 venv
