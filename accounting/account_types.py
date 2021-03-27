@@ -38,3 +38,9 @@ EXPENSE_TYPES = {
     '法定福利費',
     '租税公課',
 }
+MISC_PROFIT_TYPES = {
+    '雑所得'
+}
+MISC_LOSS_TYPES = {
+    '雑損失'
+}

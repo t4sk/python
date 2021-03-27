@@ -1,6 +1,14 @@
 import csv
 from datetime import datetime, timedelta
-from account_types import ASSET_TYPES, LIABILITY_TYPES, EQUITY_TYPES, REVENUE_TYPES, EXPENSE_TYPES
+from account_types import (
+    ASSET_TYPES,
+    LIABILITY_TYPES,
+    EQUITY_TYPES,
+    REVENUE_TYPES,
+    EXPENSE_TYPES,
+    MISC_PROFIT_TYPES,
+    MISC_LOSS_TYPES
+)
 
 DATE_FORMAT = "%Y/%m/%d"
 
@@ -141,7 +149,7 @@ class BalanceSheet:
             revenues += t_account.credit - t_account.debit
         for t_account in self.expenses:
             expenses += t_account.debit - t_account.credit
-        
+
         self.total_assets = assets
         self.total_liabilities = liabilities
         self.total_equities = equities
@@ -210,7 +218,7 @@ def csv_to_journal_entries(file_path):
                 if prev_date:
                     assert prev_date <= entry_date, f'entry dates not asc {prev_date} > {entry_date}'
                 prev_date = entry_date
-                
+
                 memo = (row[7] + ' ' + row[8]).strip()
 
                 journal_entry = JournalEntry(date=date, memo=memo)
@@ -294,7 +302,7 @@ def journal_entries_to_t_accounts(journal_entries):
 def filter_t_accounts_by_year(t_accounts, **kwargs):
     year = kwargs["year"]
     filtered = []
-    
+
     for t_account in t_accounts:
         entries = list(filter(lambda e: e.year == year, t_account.entries))
         if len(entries) > 0:
@@ -304,13 +312,13 @@ def filter_t_accounts_by_year(t_accounts, **kwargs):
                     entries=entries
                 )
             )
-    
+
     return filtered
 
 def t_accounts_to_csv(t_accounts, **kwargs):
     year = kwargs.get("year", None)
     rows = []
-    
+
     # header
     rows.append(["", "借方", "貸方", "摘要", "年度"])
 
@@ -324,7 +332,7 @@ def t_accounts_to_csv(t_accounts, **kwargs):
         for entry in t_account.entries:
             if year != None and year != entry.year:
                 continue
-                
+
             # date, debit, credit, memo
             row = [
                 date_to_str(entry.date),
@@ -345,11 +353,11 @@ def t_accounts_to_csv(t_accounts, **kwargs):
 
         # append debit and credit total
         rows.append(["", debit, credit, debit - credit])
-    
+
     file_name = "t-accounts.csv"
     if year:
         file_name = f't-accounts-{year}.csv'
-        
+
     with open(file_name, 'w', newline='\n') as file:
         writer = csv.writer(file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
 
@@ -490,7 +498,7 @@ def check_balance_sheet(balance_sheet):
         revenues += t_account.credit - t_account.debit
     for t_account in balance_sheet.expenses:
         expenses += t_account.debit - t_account.credit
-    
+
     assert assets == balance_sheet.total_assets, "assets"
     assert liabilities == balance_sheet.total_liabilities, "liabilities"
     assert equities == balance_sheet.total_equities, "equities"
@@ -541,7 +549,7 @@ def print_balance_sheet(balance_sheet):
     equities = balance_sheet.total_equities
     revenues = balance_sheet.total_revenues
     expenses = balance_sheet.total_expenses
-    
+
     print("============")
     print(f'資産 {assets:,d}')
     print(f'負債 {liabilities:,d}')
@@ -554,19 +562,34 @@ def print_balance_sheet(balance_sheet):
 
 def print_profit_loss(balance_sheet):
     total_revenue = 0
+    total_misc_profit = 0
     for t_account in balance_sheet.revenues:
         total_revenue += t_account.credit - t_account.debit
+        if t_account.account in MISC_PROFIT_TYPES:
+            total_misc_profit += t_account.credit - t_account.debit
         print(t_account.account,
               f'{t_account.credit:,d}', f'{t_account.debit:,d}')
 
     print(f'=== 収益 {total_revenue:,d} ===')
 
     total_expense = 0
+    total_misc_loss = 0
     for t_account in balance_sheet.expenses:
         total_expense += t_account.debit - t_account.credit
+        if t_account.account in MISC_LOSS_TYPES:
+            total_misc_loss += t_account.debit - t_account.credit
         print(t_account.account,
               f'{t_account.credit:,d}', f'{t_account.debit:,d}'
               )
 
-    print(f'=== 費用 {total_expense:,d} ===')
-    print(f'=== 利益 {total_revenue - total_expense:,d} ===')
+    misc_profit = max(total_misc_profit - total_misc_loss, 0)
+
+    print(f'=========')
+    print(f'費用 {total_expense:,d}')
+    print(f'利益 {total_revenue - total_expense:,d}')
+    print(f'雑所得 {total_misc_profit:,d}')
+    print(f'雑損失 {total_misc_loss:,d}')
+    print(f'雑所得 {total_misc_profit:,d}')
+    print(f'収益 - 雑所得  {total_revenue - total_misc_profit:,d}')
+    print(f'費用 - 雑損失 {total_expense - total_misc_loss:,d}')
+    print(f'収益 - 雑所得 - (費用 - 雑損失) + max(雑所得 - 雑損失, 0) {total_revenue - total_misc_profit - (total_expense - total_misc_loss) + misc_profit:,d}')
