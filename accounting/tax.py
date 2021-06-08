@@ -189,9 +189,12 @@ def main(**kwargs):
     medical = kwargs["medical"]
     elderly_aid = kwargs["elderly_aid"]
     nursing_care = kwargs["nursing_care"]
+    self_employed = kwargs["self_employed"]
 
     ### 国民年金 ###
-    pension_fee = 16540 * 12
+    pension_fee = 0
+    if self_employed:
+        pension_fee = 16540 * 12
 
     ### 国民健康保険 ###
     # 医療
@@ -216,14 +219,16 @@ def main(**kwargs):
     # 国民健康保険の加入者
     subscribers = [age]
 
-    national_health_insurance_fee = get_national_health_insurance_fee(
-        pre_tax_income,
-        age,
-        _medical,
-        _elderly_aid,
-        _nursing_care,
-        subscribers
-    )
+    national_health_insurance_fee = 0
+    if self_employed:
+        national_health_insurance_fee = get_national_health_insurance_fee(
+            pre_tax_income,
+            age,
+            _medical,
+            _elderly_aid,
+            _nursing_care,
+            subscribers
+        )
 
     ### 所得税 ###
     # 配偶者控除
