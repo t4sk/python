@@ -34,5 +34,5 @@ EXPENSE_TYPES = {
     "諸会費",
     "消耗品費",
 }
-MISC_PROFIT_TYPES = {"雑所得"}
-MISC_LOSS_TYPES = {"雑損失"}
+MISC_PROFIT_TYPES = {"雑所得", "為替差益", "預金利息"}
+MISC_LOSS_TYPES = {"雑損失", "為替差損"}

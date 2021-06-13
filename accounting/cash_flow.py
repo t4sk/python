@@ -51,12 +51,15 @@ def main(**kwargs):
     
     for (start, end) in months:
         filtered = filter_journal_entries_by_date_range(
-            journal_entries, start, end)
+            journal_entries, start, end
+        )
         t_accounts = journal_entries_to_t_accounts(filtered)
         t_accounts = filter_t_accounts_by_year(t_accounts, year=year)
         balance_sheets.append(create_balance_sheet(t_accounts))
      
     # print summary
+    print("WARNING: misc profit and loss excluded")
+    
     print_header()
     for i in range(len(months)):
         (start, end) = months[i]
@@ -73,11 +76,11 @@ def main(**kwargs):
         )
      
     # print detail
-    print()
-    for i in range(len(months)):
-        (start, end) = months[i]
-        bs = balance_sheets[i]    
+    #     print()
+    #     for i in range(len(months)):
+    #         (start, end) = months[i]
+    #         bs = balance_sheets[i]    
 
-        print(f'=== {date_to_str(start)} - {date_to_str(end)} ===')
-        print_balance_sheet(bs)
-        print("\n")
+    #         print(f'=== {date_to_str(start)} - {date_to_str(end)} ===')
+    #         print_balance_sheet(bs)
+    #         print("\n")
