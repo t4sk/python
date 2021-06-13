@@ -315,7 +315,7 @@ def filter_t_accounts_by_year(t_accounts, **kwargs):
 
     return filtered
 
-def t_accounts_to_csv(t_accounts, **kwargs):
+def save_t_accounts_to_csv(t_accounts, **kwargs):
     year = kwargs.get("year", None)
     rows = []
 
