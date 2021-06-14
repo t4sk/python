@@ -10,6 +10,16 @@ from account_types import (
     MISC_LOSS_TYPES
 )
 
+from IPython.display import Markdown, display
+
+
+def print_md(s):
+    _s = s
+    if isinstance(s, list):
+        _s = "\n".join(s)
+    # WARNING: $ sign is special char
+    display(Markdown(_s))
+
 DATE_FORMAT = "%Y/%m/%d"
 
 
@@ -50,7 +60,7 @@ class Entry:
         self.year = int(kwargs["year"])
 
     def __str__(self):
-        return f'{self.type} {self.account} {self.amount:,d} {self.year}'
+        return f'{self.type} | {self.account} | {self.amount:,d} | {self.year}'
 
 
 class JournalEntry:
@@ -90,7 +100,7 @@ class TAccountEntry:
         self.year = int(kwargs["year"])
 
     def __str__(self):
-        return "{0} {1} {2} {3} {4} {5}".format(
+        return "| {0} | {1} | {2} | {3} | {4} | {5} |".format(
             self.account,
             date_to_str(self.date),
             self.type,
@@ -549,40 +559,56 @@ def check_balance_sheet(balance_sheet):
 
 
 def print_balance_sheet(balance_sheet):
-    print("=== 資産 ===")
+    def print_table(title, rows):
+        s = [
+            f'|{title}||',
+            ":--- | ---:",
+        ]
+        for row in rows:
+            s.append(row)
+        print_md(s)
+    
+    rows = []
     for t_account in balance_sheet.assets:
         diff = t_account.debit - t_account.credit
-        print(f'{t_account.account} {diff:,d}')
+        rows.append(f'| {t_account.account} | {diff:,d} |')
+    print_table("資産", rows)
 
-    print("=== 負債 ===")
+    rows = []
     for t_account in balance_sheet.liabilities:
         diff = t_account.credit - t_account.debit
-        print(f'{t_account.account} {diff:,d}')
+        rows.append(f'| {t_account.account} | {diff:,d} |')
+    print_table("負債", rows)
 
-    print("=== 資本 ===")
+    rows = []
     for t_account in balance_sheet.equities:
         diff = t_account.credit - t_account.debit
-        print(f'{t_account.account} {diff:,d}')
+        rows.append(f'| {t_account.account} | {diff:,d} |')
+    print_table("資本", rows)
 
-    print("=== 収益 ===")
+    rows = []
     for t_account in balance_sheet.revenues:
         diff = t_account.credit - t_account.debit
-        print(f'{t_account.account} {diff:,d}')
-
-    print("=== 費用 ===")
+        rows.append(f'| {t_account.account} | {diff:,d} |')
+    print_table("収益", rows)
+    
+    rows = []
     for t_account in balance_sheet.expenses:
         diff = t_account.debit - t_account.credit
-        print(f'{t_account.account} {diff:,d}')
+        rows.append(f'| {t_account.account} | {diff:,d} |')
+    print_table("費用", rows)
     
-    print("=== 雑所得 ===")
+    rows = []
     for t_account in balance_sheet.misc_profits:
         diff = t_account.credit - t_account.debit
-        print(f'{t_account.account} {diff:,d}')
-        
-    print("=== 雑損失 ===")
+        rows.append(f'| {t_account.account} | {diff:,d} |')
+    print_table("雑所得", rows)
+    
+    rows = []
     for t_account in balance_sheet.misc_losses:
         diff = t_account.debit - t_account.credit
-        print(f'{t_account.account} {diff:,d}')
+        rows.append(f'| {t_account.account} | {diff:,d} |')
+    print_table("雑損失", rows)
 
     assets = balance_sheet.total_assets
     liabilities = balance_sheet.total_liabilities
@@ -591,41 +617,62 @@ def print_balance_sheet(balance_sheet):
     expenses = balance_sheet.total_expenses
     misc_profits = balance_sheet.total_misc_profits
     misc_losses = balance_sheet.total_misc_losses
+    total = liabilities + equities + revenues - expenses + misc_profits - misc_losses
 
-    print("============")
-    print(f'資産 {assets:,d}')
-    print(f'負債 {liabilities:,d}')
-    print(f'資本 {equities:,d}')
-    print(f'収益 {revenues:,d}')
-    print(f'費用 {expenses:,d}')
-    print(f'雑所得 {misc_profits:,d}')
-    print(f'雑損失 {misc_losses:,d}')
-    print(
-        f'負債 + 資本 + 収益 - 費用 + 雑所得 - 雑損失 {liabilities + equities + revenues - expenses + misc_profits - misc_losses:,d}')
+    rows = []
+    rows.append(f'| 資産 | {assets:,d} |')
+    rows.append(f'| 負債 | {liabilities:,d} |')
+    rows.append(f'| 資本 | {equities:,d} |')
+    rows.append(f'| 収益 | {revenues:,d} |')
+    rows.append(f'| 費用 | {expenses:,d} |')
+    rows.append(f'| 雑所得 | {misc_profits:,d} |')
+    rows.append(f'| 雑損失 | {misc_losses:,d} |')
+    print_table("", rows)
+    print(f'負債 + 資本 + 収益 - 費用 + 雑所得 - 雑損失 {total:,d}')
 
 
 def print_profit_loss(balance_sheet):
+    def print_table(rows):
+        s = [
+            "| account | credit | debit |",
+            "| :------ | -----: | ----: |"
+        ]
+        for row in rows:
+            s.append(row)
+        print_md(s)
+
+    rows = []
     total_revenue = 0
     for t_account in balance_sheet.revenues:
         total_revenue += t_account.credit - t_account.debit
-        print(t_account.account, f'{t_account.credit:,d}', f'{t_account.debit:,d}')
+        rows.append(f'| {t_account.account} | {t_account.credit:,d} | {t_account.debit:,d} |')
+    print_table(rows)
 
-    print(f'=== 収益 {total_revenue:,d} ===')
+    print(f'収益 {total_revenue:,d}')
 
+    rows = []
     total_expense = 0
     for t_account in balance_sheet.expenses:
         total_expense += t_account.debit - t_account.credit
-        print(t_account.account, f'{t_account.credit:,d}', f'{t_account.debit:,d}')
-    
-    print(f'=== 費用 {total_expense:,d} ===')
+        rows.append(f'| {t_account.account} | {t_account.credit:,d} | {t_account.debit:,d} |')
+    print_table(rows)
+
+    print(f'費用 {total_expense:,d}')
 
     # misc profit / loss
     total_misc_profits = balance_sheet.total_misc_profits
     total_misc_losses = balance_sheet.total_misc_losses
     misc_profit = max(total_misc_profits - total_misc_losses, 0)
 
-    print(f'=========')
-    print(f'利益 {total_revenue - total_expense:,d}')
-    print(f'雑所得 {total_misc_profits:,d}')
-    print(f'雑損失 {total_misc_losses:,d}')
+    # summary - render markdown
+    rows = [
+        "| | |",
+        ":--- | ---:"
+    ]
+    rows.append(f'| 利益 | {total_revenue - total_expense:,d} |')
+    rows.append(f'| 雑所得 | {total_misc_profits:,d} |')
+    rows.append(f'| 雑損失 | {total_misc_losses:,d} |')
+    
+    print_md(rows)
+    
     print(f'収益 - 費用 + max(雑所得 - 雑損失, 0) {total_revenue - total_expense + misc_profit:,d}')

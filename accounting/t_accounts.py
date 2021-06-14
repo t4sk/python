@@ -2,8 +2,20 @@ from lib import (
     csv_to_journal_entries,
     save_t_accounts_to_csv,
     filter_t_accounts_by_year,
-    journal_entries_to_t_accounts
+    journal_entries_to_t_accounts,
+    print_md
 )
+
+def print_entries(rows):
+    s = [
+        "| account | date | debit / credit | amount | memo | year |",
+        "| :--- | :--- | :--- | ---: | :--- | --- |"
+    ]
+    for row in rows:
+        s.append(row)
+        #print(row)
+    print_md(s)
+    
 
 def main(**kwargs):
     show_entries = kwargs.get("show_entries", True)
@@ -28,6 +40,9 @@ def main(**kwargs):
     for t_account in t_accounts:
         diff = t_account.debit - t_account.credit
         print(f'=== {t_account.account} | {t_account.debit:,d} | {t_account.credit:,d} | {diff:,d} ===')
+
         if show_entries:
+            rows = []
             for entry in t_account.entries:
-                print(entry)
+                rows.append(str(entry))
+            print_entries(rows)
