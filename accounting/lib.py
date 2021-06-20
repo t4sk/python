@@ -634,7 +634,7 @@ def print_balance_sheet(balance_sheet):
 def print_profit_loss(balance_sheet):
     def print_table(rows):
         s = [
-            "| account | credit | debit |",
+            "| account | debit | credit |",
             "| :------ | -----: | ----: |"
         ]
         for row in rows:
@@ -645,7 +645,7 @@ def print_profit_loss(balance_sheet):
     total_revenue = 0
     for t_account in balance_sheet.revenues:
         total_revenue += t_account.credit - t_account.debit
-        rows.append(f'| {t_account.account} | {t_account.credit:,d} | {t_account.debit:,d} |')
+        rows.append(f'| {t_account.account} | {t_account.debit:,d} | {t_account.credit:,d} |')
     print_table(rows)
 
     print(f'収益 {total_revenue:,d}')
@@ -654,7 +654,7 @@ def print_profit_loss(balance_sheet):
     total_expense = 0
     for t_account in balance_sheet.expenses:
         total_expense += t_account.debit - t_account.credit
-        rows.append(f'| {t_account.account} | {t_account.credit:,d} | {t_account.debit:,d} |')
+        rows.append(f'| {t_account.account} | {t_account.debit:,d} | {t_account.credit:,d} |')
     print_table(rows)
 
     print(f'費用 {total_expense:,d}')
